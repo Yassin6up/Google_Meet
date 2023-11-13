@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="/socket.io/socket.io.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <label for="name">Your Name</label>
+    <input type="text" name="name" id="name">
+    <label for="title">Room Title</label>
+    <input type="text" name="title" id="title">
+    <button id="go" onclick="createRoom()">Go Room</button>
+<br><br><br>
+<hr>
+<br><br><br>
+<label for="code">Secret Code</label>
+<input type="text" name="code" id="code">
+<label for="nameJoin">Name</label>
+<input type="text" name="nameJoin" id="nameJoin">
+<button id="join" onclick="joinRoom()">Join</button>
+
+
+
+
+    <script>
+      const socket = io();
+      socket.on("connect",()=>{
+        console.log("connected")
+      })
+
+      socket.on("createRoom",(data)=>{
+        alert(`code : ${data.code}`)
+        window.location.href = `http://localhost:3000/room=${data.code}`;
+      })
+      socket.on("joinRoom", (data)=>{
+        alert(`Welcome to ${data.title}`)
+        window.location.href = `http://localhost:3000/room=${data.code}`;
+      })
+
+
+      function createRoom(){
+        let name = document.getElementById('name').value;
+        let title = document.getElementById('title').value;
+        if(name && title){
+          socket.emit("create_room", {name: name , title : title , code : generateToken(16) });
+          
+          }else{
+            alert("Please fill all fields");
+            }
+
+      }
+      function joinRoom(){
+        let code = document.getElementById('code').value;
+        let nameJoin = document.getElementById('nameJoin').value;
+        if(code && nameJoin){
+          socket.emit("join_room", {roomCode : code , name : nameJoin});
+          }else{
+            alert("Please enter the secret code to access this room.");
+            }
+      }
+
+
+
+      let roomId;
+      // 2. Create a function to generate the random number for the room ID
+      // Define character sets for the token
+      const characterSets = {
+        uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        lowercase: "abcdefghijklmnopqrstuvwxyz",
+        numbers: "0123456789",
+      };
+
+      // Function to generate a random token
+      function generateToken(length) {
+        const allChars = Object.values(characterSets).join("");
+        let token = "";
+        for (let i = 0; i < length; i++) {
+          const randomChar =
+            allChars[Math.floor(Math.random() * allChars.length)];
+          token += randomChar;
+        }
+        return token;
+      }
+
+      // Usage: Generate a 16-character token
+      const randomToken = generateToken(16);
+      let name  ; 
+
+
+        function sendData(data){
+            data.username =name ;
+            webSocket.send(JSON.stringify(data))
+
+            window.location.href = `http://localhost:3000/room=${randomToken}`;
+        }
+
+    </script>
+  </body>
+</html>

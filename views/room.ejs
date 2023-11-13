@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real-Time Video Sharing</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="/style.css" />
+    <style>
+      /* Initially hide the loader */
+      .container {
+        display: block;
+        width: 100%;
+        height: 100vh;
+        background-color: #212121;
+        position: fixed;
+        z-index: 10000;
+      }
+    </style>
+
+    <script>
+      // Function to show the loader
+      function showLoader() {
+        const loader = document.querySelector(".container");
+        if (loader) {
+          loader.style.display = "none"; // Show the loader
+        }
+      }
+
+      // Show the loader after a delay (e.g., 6 seconds)
+      setTimeout(showLoader, 6000);
+
+      // You can load your content or execute any actions that take time here.
+      // For example, loading data, making API calls, etc.
+      // Once the content is loaded, you can hide the loader.
+      window.addEventListener("load", function () {
+        const loader = document.querySelector(".container");
+        if (loader) {
+          loader.style.display = " block"; // Hide the loader
+        }
+        // Show the page content or perform any other actions you want
+      });
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="loader"></div>
+      <div class="loader"></div>
+      <div class="loader"></div>
+    </div>
+
+    <div class="barTop">
+      <h1 id="meetCount">On Meet</h1>
+      <h1 class="title"><%- title %></h1>
+      <h1>10:02</h1>
+    </div>
+
+    <div class="meatings" id="meetContainer">
+      <video class="video"></video>
+    </div>
+
+    <div class="footerTools">
+      <div class="users">
+        <div class="Ulogo">FA</div>
+        <div class="Ulogo">YS</div>
+      </div>
+      <div class="tools">
+        <div class="voice" id="voice" onclick="muteAudio()">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            stroke="white"
+            fill="none"
+            stroke-linejoin="round"
+            stroke-width="1.125"
+            stroke-linecap="round"
+            xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M3 11.3077C3 10.2031 3.89543 9.30769 5 9.30769H7.62864C7.86822 9.30769 8.09984 9.22168 8.28135 9.0653L11.3473 6.42387C11.9955 5.86545 13 6.32594 13 7.18148V16.8185C13 17.6741 11.9955 18.1345 11.3473 17.5761L8.28135 14.9347C8.09984 14.7783 7.86822 14.6923 7.62864 14.6923H5C3.89543 14.6923 3 13.7969 3 12.6923V11.3077Z"></path>
+            <path
+              d="M16 14.5L18.5 12M18.5 12L21 9.5M18.5 12L21 14.5M18.5 12L16 9.5"></path>
+          </svg>
+        </div>
+        <div class="camera" id="camera" onclick="muteVideo()">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            stroke="white"
+            fill="none"
+            stroke-linejoin="round"
+            stroke-width="1.125"
+            stroke-linecap="round"
+            xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M5.00017 19L19.0002 5M19.0001 9.25709C19.6598 9.9545 20.1563 10.6332 20.4896 11.1411C20.835 11.6674 20.8363 12.3304 20.491 12.8568C19.4034 14.5147 16.5731 18 12.0001 18C11.4548 18 10.9343 17.9504 10.4386 17.8603M13.6521 6.15662C13.1293 6.0558 12.5787 6.00001 12.0001 6.00001C7.42711 6.00001 4.59681 9.48536 3.50919 11.1433C3.16388 11.6696 3.16539 12.333 3.51082 12.8592C3.85155 13.3784 4.36278 14.076 5.0445 14.7897"></path>
+          </svg>
+        </div>
+        <div class="stream">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            stroke="#000000"
+            fill="none"
+            stroke-linejoin="round"
+            stroke-width="1.125"
+            stroke-linecap="round"
+            xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M20 17V8C20 6.89543 19.1046 6 18 6H6C4.89543 6 4 6.89543 4 8V17M4.33333 19H19.6667C20.403 19 21 18.403 21 17.6667C21 17.2985 20.7015 17 20.3333 17H3.66667C3.29848 17 3 17.2985 3 17.6667C3 18.403 3.59695 19 4.33333 19Z"></path>
+            <path d="M11.5 8H12.5"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="cancle">
+        <a href="/">
+          <button class="Btn">
+            <div class="sign">
+              <svg viewBox="0 0 512 512">
+                <path
+                  d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"></path>
+              </svg>
+            </div>
+
+            <div class="text" id="leave">Logout</div>
+          </button>
+        </a>
+      </div>
+    </div>
+    <div class="sidebar" id="sideBar">
+      <div class="top" id="topBar">
+        <svg width="32" height="32" viewBox="0 0 24 24" id="iconArrow" class="arrow" stroke="white" fill="none" stroke-linejoin="round" stroke-width="1.125" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg"><path d="M14 8L10 12L14 16"></path></svg>
+        <svg
+          width="32"
+          id="iconRemove"
+          class="iconEx"
+          height="32"
+          viewBox="0 0 24 24"
+          stroke="white"
+          fill="none"
+          stroke-linejoin="round"
+          stroke-width="1.125"
+          stroke-linecap="round"
+          xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M8.50001 15.5L12 12M12 12L15.5 8.49999M12 12L15.5 15.5M12 12L8.50001 8.49999M21.5 12C21.5 17.2467 17.2467 21.5 12 21.5C6.75329 21.5 2.5 17.2467 2.5 12C2.5 6.75329 6.75329 2.5 12 2.5C17.2467 2.5 21.5 6.75329 21.5 12Z"></path>
+        </svg>
+      </div>
+      <div class="sideBarContent" id="attentUsers">
+     
+      </div>
+    </div>
+
+    <button onclick="sendData()">accept user</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-peer/9.7.2/simplepeer.min.js"></script>
+    <script>
+      const webSocket = io();
+      const query = window.location.pathname.replace("/room=", "");
+
+      webSocket.on("connect", () => {
+        console.log("connected");
+      });
+      webSocket.on("getUsers", (data) => {
+        document.getElementById("meetCount").innerHTML =
+          data.length + " On Meet";
+        const videoEle = document.createElement("video");
+        document.getElementById("meetContainer").append(videoEle);
+        // videoEle.srcObject = data.name;
+        videoEle.play();
+        console.log(data);
+      });
+      webSocket.on("messageReturn", (data) => {
+        const videoEle = document.createElement("video");
+        videoEle.className = "video";
+        document.getElementById("meetContainer").append(videoEle);
+        videoEle.play();
+        console.log(data);
+      });
+      const sideBar = document.getElementById("sideBar");
+      let open = false;
+      function  isOpen(){
+        open = !open;
+      }  
+      isOpen()
+
+      webSocket.on("needJoin", (data) => {
+        console.log("user want to join : ", data.name);
+        sideBar.classList.add("activeSideBar");
+        let notification = new Audio("/sound/newUser.mp3");
+        notification.play();
+        document.getElementById("attentUsers").innerHTML += `
+        <div class="userA">
+        <div class="logoMenu">
+          ${data.name.slice(0,2)}
+          </div>
+          <h1>
+            ${data.name}
+          </h1>
+          <div class="actionMenu">
+            <button class="accept">accept</button>
+            <button class="rejec">rejected</button>
+          </div>
+        </div>
+        `;
+
+        const attentUsersIcons = document.getElementsByClassName("logoMenu");
+      Array.from(attentUsersIcons).forEach((icon) => {
+        icon.style.backgroundColor = getRandomColor();
+      });
+        });
+      let name = "yassine";
+      document.getElementById("iconRemove").onclick = () =>{
+        console.log("clicked")
+        sideBar.classList.remove("activeSideBar");
+      }
+      document.getElementById("iconArrow").onclick = ()=>{
+        sideBar.classList.add("activeSideBar");
+      }
+      document.getElementById("leave").onclick = ()=>{
+        webSocket.emit("leaveRoom" , {code : query} )
+      }
+      function sendData(data) {
+        webSocket.emit("message", { code: query });
+      }
+
+      const myPeer = new SimplePeer({
+        initiator: true,
+        trickle: false,
+        config: {
+          iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        },
+      });
+      let localStream;
+      navigator.mediaDevices
+        .getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          const videos = document.querySelectorAll(".video");
+          localStream = stream;
+
+          localStream.getVideoTracks()[0].enabled = false;
+          localStream.getAudioTracks()[0].enabled = false;
+
+          Array.from(videos).forEach((video) => {
+            video.srcObject = stream;
+            video.play();
+          });
+          myPeer.addStream(localStream);
+          myPeer.onaddstream = (e) => {
+            console.log("receiving remote stream");
+            const videoEle = document.createElement("video");
+            document.getElementById("meetContainer").append(videoEle);
+            videoEle.srcObject = e.stream;
+            videoEle.play();
+          };
+
+          myPeer.onicecandidate = (e) => {
+            if (e.candidate == null) {
+              return;
+            }
+            sendData({
+              type: "store_candidate",
+              candidate: e.candidate,
+            });
+          };
+
+          createAndSendOffer();
+
+          // // Send it to the other peer
+          // myPeer.signal(JSON.stringify(socket.id));
+          // // Listen for messages from our peer
+          webSocket.on("message", (event) => {
+            console.log("received message", event);
+            const signal = JSON.parse(event.data);
+            switch (signal.type) {
+              case "answer":
+                myPeer.setRemoteDescription(signal.answer);
+                break;
+              case "candidate":
+                myPeer.addIceCandidate(signal.candidate);
+            }
+          });
+        });
+
+      function createAndSendOffer() {
+        myPeer.createOffer(
+          (offer) => {
+            sendData({
+              type: "store_offer",
+              offer: offer,
+            });
+            myPeer.setLocalDescription(offer);
+          },
+          (err) => {
+            console.log(err);
+          }
+        );
+      }
+
+      function getRandomColor() {
+        const letters = "0123456789ABCDEF";
+        let color = "#";
+        for (let i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+      }
+      
+      const usersIcons = document.getElementsByClassName("Ulogo");
+      Array.from(usersIcons).forEach((icon) => {
+        icon.style.backgroundColor = getRandomColor();
+      });
+     
+
+      let isAudio = false;
+      function muteAudio() {
+        isAudio = !isAudio;
+        localStream.getAudioTracks()[0].enabled = isAudio;
+        const icon = document.getElementById("voice");
+
+        if (isAudio == false) {
+          icon.style.backgroundColor = "rgb(255, 65, 65)";
+          icon.innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" stroke="white" fill="none" stroke-linejoin="round" stroke-width="1.125" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg"><path d="M3 11.3077C3 10.2031 3.89543 9.30769 5 9.30769H7.62864C7.86822 9.30769 8.09984 9.22168 8.28135 9.0653L11.3473 6.42387C11.9955 5.86545 13 6.32594 13 7.18148V16.8185C13 17.6741 11.9955 18.1345 11.3473 17.5761L8.28135 14.9347C8.09984 14.7783 7.86822 14.6923 7.62864 14.6923H5C3.89543 14.6923 3 13.7969 3 12.6923V11.3077Z"></path><path d="M16 14.5L18.5 12M18.5 12L21 9.5M18.5 12L21 14.5M18.5 12L16 9.5"></path></svg>`;
+        } else {
+          icon.style.backgroundColor = "white";
+          icon.innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" stroke="#000000" fill="none" stroke-linejoin="round" stroke-width="1.125" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg"><path d="M12 18C8.13401 18 5 14.866 5 11M12 18C15.866 18 19 14.866 19 11M12 18V21M8 21H12M12 21H16M12 15C9.79086 15 8 13.2091 8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V11C16 13.2091 14.2091 15 12 15Z"></path></svg>`;
+        }
+        console.log("muted");
+      }
+
+      let isVideo = false;
+      function muteVideo() {
+        isVideo = !isVideo;
+        localStream.getVideoTracks()[0].enabled = isVideo;
+        let cameraIcon = document.getElementById("camera");
+        if (isVideo == false) {
+          cameraIcon.style.backgroundColor = "rgb(255, 65, 65)";
+          cameraIcon.innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" stroke="white" fill="none" stroke-linejoin="round" stroke-width="1.125" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg"><path d="M5.00017 19L19.0002 5M19.0001 9.25709C19.6598 9.9545 20.1563 10.6332 20.4896 11.1411C20.835 11.6674 20.8363 12.3304 20.491 12.8568C19.4034 14.5147 16.5731 18 12.0001 18C11.4548 18 10.9343 17.9504 10.4386 17.8603M13.6521 6.15662C13.1293 6.0558 12.5787 6.00001 12.0001 6.00001C7.42711 6.00001 4.59681 9.48536 3.50919 11.1433C3.16388 11.6696 3.16539 12.333 3.51082 12.8592C3.85155 13.3784 4.36278 14.076 5.0445 14.7897"></path></svg>`;
+        } else {
+          cameraIcon.style.backgroundColor = "white";
+          cameraIcon.innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" stroke="#000000" fill="none" stroke-linejoin="round" stroke-width="1.125" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg"><path d="M8 21H16M20 11C20 15.4183 16.4183 19 12 19C7.58172 19 4 15.4183 4 11C4 6.58172 7.58172 3 12 3C16.4183 3 20 6.58172 20 11ZM15 11C15 12.6569 13.6569 14 12 14C10.3431 14 9 12.6569 9 11C9 9.34315 10.3431 8 12 8C13.6569 8 15 9.34315 15 11Z"></path></svg>`;
+        }
+        console.log("cameraOff");
+      }
+    </script>
+  </body>
+</html>
